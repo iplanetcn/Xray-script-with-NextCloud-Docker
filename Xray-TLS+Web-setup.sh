@@ -3188,9 +3188,9 @@ install_update_xray_tls_web()
     check_important_dependence_installed "procps" "procps-ng"
     install_epel
     # ask_update_script
-    echo "force skip ask_update_script()"
+    echo -e "\033[5;41;34mForce skip ask_update_script()\033[0m"
     # check_ssh_timeout
-    echo "force skip check_ssh_timeout()"
+    echo -e "\033[5;41;34mForce skip check_ssh_timeout()\033[0m"
     uninstall_firewall
     doupdate
     enter_temp_dir
