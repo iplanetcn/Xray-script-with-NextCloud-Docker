@@ -111,7 +111,7 @@ wget -O Xray-TLS+Web-setup.sh https://rebrand.ly/CamouSneak
 ```
 ### 3. 执行脚本
 ```bash
-bash Xray-TLS+Web-setup.sh
+bash Xray-TLS+Web-setup.sh your.domain
 ```
 ### 4. 根据脚本提示完成安装
 ## 运行截图
