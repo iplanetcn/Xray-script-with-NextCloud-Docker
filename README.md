@@ -99,7 +99,7 @@
 ### 1. 安装wget && ca-certificates
 Debian基系统(包括Ubuntu、Debian、deepin)：
 ```bash
-apt --no-install-recommends -y install wget ca-certificates || (apt update && apt --no-install-recommends -y install wget ca-certificates)
+apt update && apt --no-install-recommends -y install wget ca-certificates
 ```
 Red Hat基系统(包括CentOS、fedora)：
 ```bash
