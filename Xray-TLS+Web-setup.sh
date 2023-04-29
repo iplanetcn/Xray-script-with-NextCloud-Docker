@@ -36,7 +36,7 @@ cloudreve_prefix="/usr/local/cloudreve"
 cloudreve_service="/etc/systemd/system/cloudreve.service"
 unset cloudreve_is_installed
 
-nextcloud_url="https://download.nextcloud.com/server/releases/nextcloud-26.0.0.tar.bz2"
+nextcloud_url="https://download.nextcloud.com/server/releases/nextcloud-26.0.1.tar.bz2"
 
 xray_config="/usr/local/etc/xray/config.json"
 unset xray_is_installed
@@ -1219,7 +1219,9 @@ doupdate()
         choice=""
         while [ "$choice" != "1" ] && [ "$choice" != "2" ] && [ "$choice" != "3" ]
         do
-            read -p "您的选择是：" choice
+            # read -p "您的选择是：" choice
+            choice=3
+            echo -e "\033[5;41;34m您的选择是：${choice}\033[0m"
         done
         if [ $release == "ubuntu" ] || [ $choice -ne 1 ]; then
             break
@@ -1548,7 +1550,13 @@ install_bbr()
         local choice=""
         while [[ ! "$choice" =~ ^(0|[1-9][0-9]*)$ ]] || ((choice>10))
         do
-            read -p "您的选择是：" choice
+            # read -p "您的选择是：" choice
+            if [[ $tcp_congestion_control == "bbr" ]] || (( ! version_ge $your_kernel_version 4.9 )); then
+                choice=0
+            else
+                choice=5
+            fi
+            echo -e "\033[5;41;34m您的选择是：${choice}\033[0m"
         done
         if (( 1<=choice&&choice<=4 )); then
             if (( choice==1 || choice==4 )) && ([ $release == "ubuntu" ] || [ $release == "debian" ] || [ $release == "deepin" ] || [ $release == "other-debian" ]) && ! dpkg-deb --help | grep -qw "zstd"; then
@@ -1728,7 +1736,9 @@ readProtocolConfig()
     local choice=""
     while [[ ! "$choice" =~ ^(0|[1-9][0-9]*)$ ]] || ((choice>7))
     do
-        read -p "您的选择是：" choice
+        # read -p "您的选择是：" choice
+        choice=5
+        echo -e "\033[5;41;34m您的选择是：${choice}\033[0m"
     done
     if [ $choice -eq 1 ] || [ $choice -eq 4 ] || [ $choice -eq 5 ] || [ $choice -eq 7 ]; then
         protocol_1=1
@@ -1754,7 +1764,9 @@ readProtocolConfig()
         protocol_1=""
         while [[ ! "$protocol_1" =~ ^([1-9][0-9]*)$ ]] || ((protocol_1>3))
         do
-            read -p "您的选择是：" protocol_1
+            # read -p "您的选择是：" protocol_1
+            protocol_1=3
+            echo -e "\033[5;41;34m您的选择是：${protocol_1}\033[0m"
         done
     fi
     if [ $protocol_2 -eq 1 ]; then
@@ -1781,7 +1793,9 @@ readProtocolConfig()
         choice=""
         while [[ ! "$choice" =~ ^([1-9][0-9]*)$ ]] || ((choice>2))
         do
-            read -p "您的选择是：" choice
+            # read -p "您的选择是：" choice
+            choice=2
+            echo -e "\033[5;41;34m您的选择是：${choice}\033[0m"
         done
         [ $choice -eq 1 ] && protocol_3=2
     fi
@@ -1813,7 +1827,9 @@ readPretend()
         pretend=""
         while [[ "$pretend" != "1" && "$pretend" != "2" && "$pretend" != "3" && "$pretend" != "4" && "$pretend" != "5" ]]
         do
-            read -p "您的选择是：" pretend
+            # read -p "您的选择是：" pretend
+            pretend=3
+            echo -e "\033[5;41;34m您的选择是：${pretend}\033[0m"
         done
         queren=1
         if [ $pretend -eq 1 ]; then
@@ -1907,7 +1923,9 @@ readDomain()
     echo
     while [ "$domain_config" != "1" ] && [ "$domain_config" != "2" ]
     do
-        read -p "您的选择是：" domain_config
+        # read -p "您的选择是：" domain_config
+        domain_config=2
+        echo -e "\033[5;41;34m您的选择是：${domain_config}\033[0m"
     done
     local queren=0
     while [ $queren -ne 1 ]
@@ -1924,7 +1942,14 @@ readDomain()
             tyblue '-------请输入解析到此服务器的域名(前面不带"http://"或"https://")-------'
             while [ -z "$domain" ]
             do
-                read -p "请输入域名：" domain
+                # read -p "请输入域名：" domain
+                if [[ -n $1 ]]; then
+                    domain="$1"
+                    echo -e "\033[5;41;34m您输入的域名是：${domain}\033[0m"
+                else
+                    echo -e "\033[5;41;34m请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
+                    exit 1
+                fi
                 if [ "$(echo -n "$domain" | wc -c)" -gt 46 ]; then
                     red "域名过长！"
                     domain=""
@@ -1932,7 +1957,7 @@ readDomain()
             done
         fi
         echo
-        ask_if "您输入的域名是\"$domain\"，确认吗？(y/n)" && queren=1
+        # ask_if "您输入的域名是\"$domain\"，确认吗？(y/n)" && queren=1
     done
     readPretend "$domain"
     true_domain_list+=("$domain")
@@ -3135,7 +3160,7 @@ print_config_info()
     fi
     echo
     yellow "注：部分选项可能分享链接无法涉及，如果不怕麻烦，建议手动填写"
-    ask_if "是否生成分享链接？(y/n)" && print_share_link
+    # ask_if "是否生成分享链接？(y/n)" && print_share_link
     echo
     yellow " 关于fingerprint与alpn，详见：https://github.com/kirin10000/Xray-script#关于tls握手tls指纹和alpn"
     echo
@@ -3162,8 +3187,10 @@ install_update_xray_tls_web()
     check_important_dependence_installed wget wget
     check_important_dependence_installed "procps" "procps-ng"
     install_epel
-    ask_update_script
-    check_ssh_timeout
+    # ask_update_script
+    echo "force skip ask_update_script()"
+    # check_ssh_timeout
+    echo "force skip check_ssh_timeout()"
     uninstall_firewall
     doupdate
     enter_temp_dir
@@ -4106,7 +4133,9 @@ start_menu()
     local choice=""
     while [[ ! "$choice" =~ ^(0|[1-9][0-9]*)$ ]] || ((choice>27))
     do
-        read -p "您的选择是：" choice
+        # read -p "您的选择是：" choice
+        choice=1
+        echo -e "\033[5;41;34m您的选择是：${choice}\033[0m"
     done
     if (( choice==2 || (7<=choice&&choice<=9) || choice==13 || (15<=choice&&choice<=24) )) && [ $is_installed -eq 0 ]; then
         red "请先安装Xray-TLS+Web！！"
