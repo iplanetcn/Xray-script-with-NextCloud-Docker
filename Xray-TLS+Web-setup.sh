@@ -1551,7 +1551,7 @@ install_bbr()
         while [[ ! "$choice" =~ ^(0|[1-9][0-9]*)$ ]] || ((choice>10))
         do
             # read -p "您的选择是：" choice
-            if [[ $tcp_congestion_control == "bbr" ]] || (( ! version_ge $your_kernel_version 4.9 )); then
+            if [[ $tcp_congestion_control == "bbr" ]] || (! version_ge $your_kernel_version 4.9); then
                 choice=0
             else
                 choice=5
