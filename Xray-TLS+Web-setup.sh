@@ -1,5 +1,18 @@
 #!/bin/bash
 
+
+# GOTO: 1959  //由于原作者过于混乱的参数管理，不得已把域名的检查前置
+if [[ -n $1 ]]; then
+    predomain="$1"
+    if [ "$(echo -n "$predomain" | wc -c)" -gt 46 ]; then
+        echo -e "\033[5;41;34m域名过长！请更换域名后重新运行脚本！\033[0m"
+        exit 1
+    fi                    
+else
+    echo -e "\033[5;41;34m此脚本需要一个解析到本服务器的域名\n请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
+    exit 1
+fi
+
 #系统信息
 # 指令集
 unset machine
@@ -1940,24 +1953,15 @@ readDomain()
             done
         else
             tyblue '-------请输入解析到此服务器的域名(前面不带"http://"或"https://")-------'
-            while [ -z "$domain" ]
-            do
+#             while [ -z "$domain" ]
+#             do
                 # read -p "请输入域名：" domain
-                if [[ -n $1 ]]; then
-                    domain="$1"
-                    echo -e "\033[5;41;34m您输入的域名是：${domain}\033[0m"
-                else
-                    echo -e "\033[5;41;34m请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
-                    exit 1
-                fi
-                if [ "$(echo -n "$domain" | wc -c)" -gt 46 ]; then
-                    red "域名过长！"
-                    domain=""
-                fi
-            done
+            domain="$predomain"
+            echo -e "\033[5;41;34m您输入的域名是：${predomain}\033[0m" && queren=1
+#             done
         fi
         echo
-        # ask_if "您输入的域名是\"$domain\"，确认吗？(y/n)" && queren=1
+        # ask_if "您输入的域名是\"$domain\"，确认吗？(y/n)"
     done
     readPretend "$domain"
     true_domain_list+=("$domain")
