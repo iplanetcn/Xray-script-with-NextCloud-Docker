@@ -848,10 +848,10 @@ else
     red "不支持的系统"
     exit 1
 fi
-if [[ -z "${BASH_SOURCE[0]}" ]]; then
-    red "请以文件的形式运行脚本，或不支持的bash版本"
-    exit 1
-fi
+# if [[ -z "${BASH_SOURCE[0]}" ]]; then
+#     red "请以文件的形式运行脚本，或不支持的bash版本"
+#     exit 1
+# fi
 if [ "$EUID" != "0" ]; then
     red "请用root用户运行此脚本！！"
     exit 1
