@@ -2680,6 +2680,9 @@ cat > $xray_config <<EOF
     },
     "inbounds": [
         {
+            "sniffing": {
+                "enabled": true
+            },
             "port": 443,
             "protocol": "vless",
             "settings": {
@@ -2797,6 +2800,9 @@ EOF
         fi
 cat >> $xray_config <<EOF
             },
+            "sniffing": {
+                "enabled": true
+            },
             "streamSettings": {
                 "network": "ws",
                 "wsSettings": {
@@ -2808,9 +2814,22 @@ EOF
 cat >> $xray_config <<EOF
         }
     ],
+    "routing": {
+        "rules": [
+            {
+                "type": "field",
+                "protocol": ["bittorrent"],
+                "outboundTag": "blocked"
+            }
+        ]
+    },
     "outbounds": [
         {
             "protocol": "freedom"
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "blocked"
         }
     ]
 }
