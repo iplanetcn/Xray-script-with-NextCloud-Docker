@@ -2659,6 +2659,14 @@ cat >> $nginx_config<<EOF
     location = /.well-known/caldav {
         return 301 https://\$host/remote.php/dav;
     }
+    # Borrowed from https://beamtic.com/webfinger-and-nodeinfo-nextcloud its "Disable cache" option works for me
+    location = /.well-known/webfinger {
+        return 301 https://\$host/index.php/.well-known/webfinger;
+    }
+
+    location = /.well-known/nodeinfo {
+        return 301 https://\$host/index.php/.well-known/nodeinfo;
+    }
     
     location / {
         proxy_pass http://127.0.0.1:8080;
