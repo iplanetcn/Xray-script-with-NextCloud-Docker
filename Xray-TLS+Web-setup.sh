@@ -2598,6 +2598,12 @@ EOF
     for ((i=0;i<${#domain_list[@]};i++))
     do
 cat >> $nginx_config<<EOF
+# Borrowed from https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md#nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
 server {
     listen unix:/dev/shm/nginx/default.sock;
     listen unix:/dev/shm/nginx/h2.sock http2;
@@ -2645,7 +2651,35 @@ EOF
                 echo "        return 403;" >> $nginx_config
                 echo "    }" >> $nginx_config
             else
-                echo "    return 403;" >> $nginx_config
+cat >> $nginx_config<<EOF
+    location = /.well-known/carddav {
+        return 301 https://$host/remote.php/dav;
+    }
+
+    location = /.well-known/caldav {
+        return 301 https://$host/remote.php/dav;
+    }
+    
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Forwarded-Scheme $scheme;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host $host;
+    
+        client_body_buffer_size 512k;
+        proxy_read_timeout 86400s;
+        client_max_body_size 0;
+
+        # Websocket
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+EOF
             fi
         elif [ "${pretend_list[$i]}" == "4" ]; then
             echo "    root ${nginx_prefix}/html/${true_domain_list[$i]};" >> $nginx_config
