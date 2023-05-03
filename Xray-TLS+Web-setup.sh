@@ -2599,7 +2599,7 @@ EOF
     do
 cat >> $nginx_config<<EOF
 # Borrowed from https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md#nginx
-map $http_upgrade $connection_upgrade {
+map \$http_upgrade \$connection_upgrade {
     default upgrade;
     '' close;
 }
@@ -2653,23 +2653,23 @@ EOF
             else
 cat >> $nginx_config<<EOF
     location = /.well-known/carddav {
-        return 301 https://$host/remote.php/dav;
+        return 301 https://\$host/remote.php/dav;
     }
 
     location = /.well-known/caldav {
-        return 301 https://$host/remote.php/dav;
+        return 301 https://\$host/remote.php/dav;
     }
     
     location / {
         proxy_pass http://127.0.0.1:8080;
         
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Port $server_port;
-        proxy_set_header X-Forwarded-Scheme $scheme;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        proxy_set_header X-Forwarded-Scheme \$scheme;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header Accept-Encoding "";
-        proxy_set_header Host $host;
+        proxy_set_header Host \$host;
     
         client_body_buffer_size 512k;
         proxy_read_timeout 86400s;
@@ -2677,8 +2677,9 @@ cat >> $nginx_config<<EOF
 
         # Websocket
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+    }
 EOF
             fi
         elif [ "${pretend_list[$i]}" == "4" ]; then
