@@ -2663,19 +2663,19 @@ EOF
             else
 cat >> $nginx_config<<EOF
     location = /.well-known/carddav {
-        rewrite ^/\.well-known/carddav$ https://$host/remote.php/dav permanent;
+        rewrite ^/\.well-known/carddav$ https://\$host/remote.php/dav permanent;
     }
 
     location = /.well-known/caldav {
-        rewrite ^/\.well-known/caldav$ https://$host/remote.php/dav permanent;
+        rewrite ^/\.well-known/caldav$ https://\$host/remote.php/dav permanent;
     }
     # Borrowed from https://beamtic.com/webfinger-and-nodeinfo-nextcloud its "Disable cache" option works for me
     location = /.well-known/webfinger {
-        rewrite ^/\.well-known/webfinger$ https://$host/index.php/.well-known/webfinger permanent;
+        rewrite ^/\.well-known/webfinger$ https://\$host/index.php/.well-known/webfinger permanent;
     }
 
     location = /.well-known/nodeinfo {
-        rewrite ^/\.well-known/nodeinfo$ https://$host/index.php/.well-known/nodeinfo permanent;
+        rewrite ^/\.well-known/nodeinfo$ https://\$host/index.php/.well-known/nodeinfo permanent;
     }
     
     location / {
