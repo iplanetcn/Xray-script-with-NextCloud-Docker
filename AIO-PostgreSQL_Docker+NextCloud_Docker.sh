@@ -92,44 +92,43 @@ apt update && apt --no-install-recommends -y install wget curl ca-certificates s
 
 if [[ -v fakeUrl ]]; then
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain $fakeUrl
+    echo -e "\033[5;41;34m带有外部反向代理伪装网址的纯Xray服务端已部署完成！\033[0m"
 else
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain
+
+    curl -fsSL https://get.docker.com | bash
+
+    docker network create NextCloudLAN
+
+    docker run -d \
+        --restart=always \
+        --network=NextCloudLAN \
+        -e POSTGRES_USER=nextcloud \
+        -e POSTGRES_PASSWORD=$ncDatabasePwd \
+        -e PGDATA=/home/ncData \
+        --name NextCloudDB \
+        postgres:15.3
+
+    docker run -d \
+        --restart=always \
+        --network=NextCloudLAN \
+        -p 127.0.0.1:8080:80 \
+        -v /home/nc:/var/www/html \
+        -e NEXTCLOUD_ADMIN_USER=$ncAdmin \
+        -e NEXTCLOUD_ADMIN_PASSWORD=$ncAdminPwd \
+        -e NEXTCLOUD_TRUSTED_DOMAINS=$sslDomain \
+        -e OVERWRITEPROTOCOL=https \
+        -e OVERWRITECLIURL=https://$sslDomain \
+        -e POSTGRES_DB=nextcloud \
+        -e POSTGRES_USER=nextcloud \
+        -e POSTGRES_PASSWORD=$ncDatabasePwd \
+        -e POSTGRES_HOST=NextCloudDB \
+        --name NextCloudIns \
+        nextcloud:26.0.1-apache
+
+
+    # Thankfully borrowed from https://stackoverflow.com/a/37410430
+    (crontab -l; echo "*/5  *  *  *  * docker exec -d -u www-data NextCloudIns php --define apc.enable_cli=1 -f /var/www/html/cron.php") | crontab -
+
+    echo -e "\033[5;41;34m高可迁移的NextCloud云盘实例已部署完成！\033[0m"
 fi
-
-
-curl -fsSL https://get.docker.com | bash
-
-
-docker network create NextCloudLAN
-
-docker run -d \
-    --restart=always \
-    --network=NextCloudLAN \
-    -e POSTGRES_USER=nextcloud \
-    -e POSTGRES_PASSWORD=$ncDatabasePwd \
-    -e PGDATA=/home/ncData \
-    --name NextCloudDB \
-    postgres:15.3
-
-docker run -d \
-    --restart=always \
-    --network=NextCloudLAN \
-    -p 127.0.0.1:8080:80 \
-    -v /home/nc:/var/www/html \
-    -e NEXTCLOUD_ADMIN_USER=$ncAdmin \
-    -e NEXTCLOUD_ADMIN_PASSWORD=$ncAdminPwd \
-    -e NEXTCLOUD_TRUSTED_DOMAINS=$sslDomain \
-    -e OVERWRITEPROTOCOL=https \
-    -e OVERWRITECLIURL=https://$sslDomain \
-    -e POSTGRES_DB=nextcloud \
-    -e POSTGRES_USER=nextcloud \
-    -e POSTGRES_PASSWORD=$ncDatabasePwd \
-    -e POSTGRES_HOST=NextCloudDB \
-    --name NextCloudIns \
-    nextcloud:26.0.1-apache
-
-
-# Thankfully borrowed from https://stackoverflow.com/a/37410430
-(crontab -l; echo "*/5  *  *  *  * docker exec -d -u www-data NextCloudIns php --define apc.enable_cli=1 -f /var/www/html/cron.php") | crontab -
-
-echo -e "\033[5;41;34m高可迁移的NextCloud云盘实例已部署完成！\033[0m"
