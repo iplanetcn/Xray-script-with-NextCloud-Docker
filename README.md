@@ -99,19 +99,23 @@
 ### 1. 安装wget && ca-certificates
 Debian基系统(包括Ubuntu、Debian、deepin)：
 ```bash
-apt update && apt --no-install-recommends -y install wget ca-certificates
+apt update && apt --no-install-recommends -y install curl ca-certificates
 ```
 Red Hat基系统(包括CentOS、fedora)：
 ```bash
 dnf -y install wget ca-certificates || yum -y install wget ca-certificates
 ```
-### 2. 获取/更新脚本
+### 2. 执行小脚本只安装Xray服务端
 ```bash
-wget -O Xray-TLS+Web-setup.sh https://rebrand.ly/CamouSneak
+curl -fsL rebrand.ly/CamouSneak | bash -s -- hostname.your.domain fake.rev.url
 ```
-### 3. 执行脚本
+### 3. 执行大脚本Xray、NextCloud傻瓜式一把梭
 ```bash
-bash Xray-TLS+Web-setup.sh your.domain
+wget -qO- rebrand.ly/grand-slam-ray | bash -s -- \
+    --ssl-domain hostname.your.domain \
+    --NextCloud-admin-usr <yourusername> \
+    --NextCloud-admin-pwd <yournextcloudpassword> \
+    --NextCloud-DB-pwd <yourdatabasepassword>
 ```
 ### 4. 根据脚本提示完成安装
 ## 运行截图
