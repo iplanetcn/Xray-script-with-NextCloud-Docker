@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-# GOTO: 1959  //由于原作者过于混乱的参数管理，不得已把域名的检查前置
+# GOTO: 1969  //由于原作者过于混乱的参数管理，不得已把域名的检查前置
 if [[ -n $1 ]]; then
     predomain="$1"
     if [ "$(echo -n "$predomain" | wc -c)" -gt 46 ]; then
@@ -11,6 +11,11 @@ if [[ -n $1 ]]; then
 else
     echo -e "\033[5;41;34m此脚本需要一个解析到本服务器的域名\n请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
     exit 1
+fi
+
+# GOTO: 1912
+if [[ -n $2 ]]; then
+    preFake="$2"
 fi
 
 #系统信息
@@ -1841,7 +1846,11 @@ readPretend()
         while [[ "$pretend" != "1" && "$pretend" != "2" && "$pretend" != "3" && "$pretend" != "4" && "$pretend" != "5" ]]
         do
             # read -p "您的选择是：" pretend
-            pretend=3
+            if [[ -v preFake ]]; then
+                pretend=5
+            else
+                pretend=3
+            fi
             echo -e "\033[5;41;34m您的选择是：${pretend}\033[0m"
         done
         queren=1
@@ -1900,11 +1909,12 @@ readPretend()
             ! ask_if "确认并继续？(y/n)" && queren=0
         elif [ $pretend -eq 5 ]; then
             yellow "输入反向代理网址，格式如：\"https://v.qq.com\""
-            pretend=""
-            while [ -z "$pretend" ]
-            do
-                read -p "请输入反向代理网址：" pretend
-            done
+            pretend="$preFake"
+#             while [ -z "$pretend" ]
+#             do
+#                 read -p "请输入反向代理网址：" pretend
+#             done
+            echo -e "\033[5;41;34m您输入的反向代理网址是：${pretend}\033[0m"
         fi
     done
 }
@@ -2653,19 +2663,19 @@ EOF
             else
 cat >> $nginx_config<<EOF
     location = /.well-known/carddav {
-        return 301 https://\$host/remote.php/dav;
+        rewrite ^/\.well-known/carddav$ https://$host/remote.php/dav permanent;
     }
 
     location = /.well-known/caldav {
-        return 301 https://\$host/remote.php/dav;
+        rewrite ^/\.well-known/caldav$ https://$host/remote.php/dav permanent;
     }
     # Borrowed from https://beamtic.com/webfinger-and-nodeinfo-nextcloud its "Disable cache" option works for me
     location = /.well-known/webfinger {
-        return 301 https://\$host/index.php/.well-known/webfinger;
+        rewrite ^/\.well-known/webfinger$ https://$host/index.php/.well-known/webfinger permanent;
     }
 
     location = /.well-known/nodeinfo {
-        return 301 https://\$host/index.php/.well-known/nodeinfo;
+        rewrite ^/\.well-known/nodeinfo$ https://$host/index.php/.well-known/nodeinfo permanent;
     }
     
     location / {
