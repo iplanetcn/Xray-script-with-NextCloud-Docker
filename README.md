@@ -109,6 +109,9 @@ dnf -y install wget ca-certificates || yum -y install wget ca-certificates
 ```bash
 curl -fsL rebrand.ly/CamouSneak | bash -s -- hostname.your.domain fake.rev.url
 ```
+```bash
+wget -qO- rebrand.ly/grand-slam-ray | bash -s -- --ssl-domain hostname.your.domain --fake-domain http://demo.cloudreve.org
+```
 ### 3. 执行大脚本Xray、NextCloud傻瓜式一把梭
 ```bash
 wget -qO- rebrand.ly/grand-slam-ray | bash -s -- \
