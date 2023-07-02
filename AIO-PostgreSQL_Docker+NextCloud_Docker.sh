@@ -101,16 +101,16 @@ else
     docker network create NextCloudLAN
 
     docker run -d \
-        --restart=always \
+        --restart=unless-stopped \
         --network=NextCloudLAN \
         -e POSTGRES_USER=nextcloud \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e PGDATA=/home/ncData \
         --name NextCloudDB \
-        postgres:15.3
+        postgres:latest
 
     docker run -d \
-        --restart=always \
+        --restart=unless-stopped \
         --network=NextCloudLAN \
         -p 127.0.0.1:8080:80 \
         -v /home/nc:/var/www/html \
@@ -124,7 +124,7 @@ else
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e POSTGRES_HOST=NextCloudDB \
         --name NextCloudIns \
-        nextcloud:26.0.1-apache
+        nextcloud:latest
 
 
     # Thankfully borrowed from https://stackoverflow.com/a/37410430
