@@ -114,6 +114,7 @@ else
         --network=NextCloudLAN \
         -p 127.0.0.1:8080:80 \
         -v /home/nc:/var/www/html \
+        -v /mnt:/mnt \
         -e NEXTCLOUD_ADMIN_USER=$ncAdmin \
         -e NEXTCLOUD_ADMIN_PASSWORD=$ncAdminPwd \
         -e NEXTCLOUD_TRUSTED_DOMAINS=$sslDomain \
