@@ -2707,6 +2707,7 @@ cat >> $nginx_config<<EOF
     location / {
         proxy_pass ${pretend_list[$i]};
         proxy_set_header referer "${pretend_list[$i]}";
+        proxy_ssl_server_name on;
     }
 EOF
         fi
