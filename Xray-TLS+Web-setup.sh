@@ -2605,14 +2605,18 @@ server {
     return 301 https://${domain_list[0]};
 }
 EOF
-    for ((i=0;i<${#domain_list[@]};i++))
-    do
+    if [ "${pretend_list[$i]}" == "3" ]; then
 cat >> $nginx_config<<EOF
 # Borrowed from https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md#nginx
 map \$http_upgrade \$connection_upgrade {
     default upgrade;
     '' close;
 }
+EOF
+    fi
+    for ((i=0;i<${#domain_list[@]};i++))
+    do
+
 
 server {
     listen unix:/dev/shm/nginx/default.sock;
