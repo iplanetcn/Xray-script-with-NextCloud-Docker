@@ -2616,8 +2616,7 @@ EOF
     fi
     for ((i=0;i<${#domain_list[@]};i++))
     do
-
-
+cat >> $nginx_config<<EOF
 server {
     listen unix:/dev/shm/nginx/default.sock;
     listen unix:/dev/shm/nginx/h2.sock http2;
