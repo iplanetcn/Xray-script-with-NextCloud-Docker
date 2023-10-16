@@ -2669,7 +2669,7 @@ EOF
             echo '                        "id": "'"$xid_1"'"' >> $xray_config
         else
             echo '                        "id": "'"$xid_1"'",' >> $xray_config
-            echo '                        "flow": "xtls-rprx-vision,none"' >> $xray_config
+            echo '                        "flow": "xtls-rprx-vision"' >> $xray_config
         fi
         echo '                    }' >> $xray_config
         echo '                ],' >> $xray_config
