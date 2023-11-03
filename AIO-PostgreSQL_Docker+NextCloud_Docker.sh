@@ -103,7 +103,7 @@ else
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
-        -e POSTGRES_USER=nextcloud \
+        -e POSTGRES_USER=nextclouder \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e PGDATA=/home/ncData \
         --name NextCloudDB \
@@ -114,14 +114,13 @@ else
         --network=NextCloudLAN \
         -p 127.0.0.1:8080:80 \
         -v /home/nc:/var/www/html \
-        -v /mnt:/mnt \
         -e NEXTCLOUD_ADMIN_USER=$ncAdmin \
         -e NEXTCLOUD_ADMIN_PASSWORD=$ncAdminPwd \
         -e NEXTCLOUD_TRUSTED_DOMAINS=$sslDomain \
         -e OVERWRITEPROTOCOL=https \
         -e OVERWRITECLIURL=https://$sslDomain \
         -e POSTGRES_DB=nextcloud \
-        -e POSTGRES_USER=nextcloud \
+        -e POSTGRES_USER=nextclouder \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e POSTGRES_HOST=NextCloudDB \
         --name NextCloudIns \
