@@ -103,6 +103,7 @@ else
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
+        -e POSTGRES_DB=nextcloud \
         -e POSTGRES_USER=nextclouder \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e PGDATA=/home/ncData \
