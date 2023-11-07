@@ -86,9 +86,8 @@ fi
 
 
 # start of the script
-rm -rf /home/nc /home/xr
-mkdir /home/xr && cd /home/xr
-apt update && apt --no-install-recommends -y install wget curl ca-certificates sshpass
+rm -rf /home/nc
+apt update && apt --no-install-recommends -y install wget curl ca-certificates rsync
 
 if [[ -v fakeUrl ]]; then
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain $fakeUrl
@@ -106,9 +105,17 @@ else
         -e POSTGRES_DB=nextcloud \
         -e POSTGRES_USER=nextclouder \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
-        -e PGDATA=/home/ncData \
+        -e TZ=Asia/Singapore \
+        -v /home/ncD/pgData:/var/lib/postgresql/data \
         --name NextCloudDB \
-        postgres:latest
+        postgres:alpine
+
+    docker run -d \
+        --restart=unless-stopped \
+        --network=NextCloudLAN \
+        -e TZ=Asia/Singapore \
+        --name NextCloudCACHE \
+        redis:alpine
 
     docker run -d \
         --restart=unless-stopped \
@@ -124,6 +131,8 @@ else
         -e POSTGRES_USER=nextclouder \
         -e POSTGRES_PASSWORD=$ncDatabasePwd \
         -e POSTGRES_HOST=NextCloudDB \
+        -e REDIS_HOST=NextCloudCACHE \
+        -e TZ=Asia/Singapore \
         --name NextCloudIns \
         nextcloud:latest
 
