@@ -1,5 +1,6 @@
 #!/bin/bash
 
+timedatectl set-timezone Asia/Singapore
 if [[ $# -eq 0 ]]; then
     echo -e "\033[5;41;34m此脚本必须带参数运行\033[0m"
     exit 1
@@ -70,16 +71,40 @@ while [[ $# -ge 2 ]]; do
             fi
             shift
         ;;
+        
+        '--Rsync-Acc-Pwd')  # separated by the colon symbol
+            shift
+            if [[ -z $1 ]] || [[ $1 == -* ]]; then
+                echo -e "\033[5;41;34m需要正确配置Rsync的同步账号:密码！\033[0m"
+                exit 1
+            else
+                rsyncAccPwd="$1"
+                echo -e "\033[5;41;34m您输入的Rsync同步账号密码是：${rsyncAccPwd}\033[0m"
+            fi
+            shift
+        ;;
+
+        '--Rsync-Secret-Port')  # separated by the @ symbol
+            shift
+            if [[ -z $1 ]] || [[ $1 == -* ]]; then
+                echo -e "\033[5;41;34m需要正确配置Rsync的服务端账密储存文件、端口！\033[0m"
+                exit 1
+            else
+                rsyncSecPort="$1"
+                echo -e "\033[5;41;34m您输入的Rsync服务端账密储存文件、端口是：${rsyncSecPort}\033[0m"
+            fi
+            shift
+        ;;
     esac
 done
 
 if ! [[ -v sslDomain ]]; then
     echo -e "\033[5;41;34m指向域名是必需的！\033[0m"
     exit 1
-elif [[ ! (-v ncAdmin && -v ncAdminPwd && -v ncDatabasePwd) && -z $fakeUrl ]]; then
+elif [[ ! (-v ncAdmin && -v ncAdminPwd && -v ncDatabasePwd && -v rsyncAccPwd && -v rsyncSecPort) && -z $fakeUrl ]]; then
     echo -e "\033[5;41;34m要么装网盘要么正常简单用，也不能缺选项\033[0m"
     exit 1
-elif [[ (-v ncAdmin || -v ncAdminPwd || -v ncDatabasePwd) && -v fakeUrl ]]; then
+elif [[ (-v ncAdmin || -v ncAdminPwd || -v ncDatabasePwd || -v rsyncAccPwd || -v rsyncSecPort) && -v fakeUrl ]]; then
     echo -e "\033[5;41;34m是二选一啦！不能两个都要！达咩！\033[0m"
     exit 1
 fi
@@ -141,4 +166,35 @@ else
     (crontab -l; echo "*/5  *  *  *  * docker exec -d -u www-data NextCloudIns php --define apc.enable_cli=1 -f /var/www/html/cron.php") | crontab -
 
     echo -e "\033[5;41;34m高可迁移的NextCloud云盘实例已部署完成！\033[0m"
+
+
+
+    # Create the config file for Rsyncd
+    # Separate the sub-variables accordingly
+    rsyncAcc=`cut -d':' -f1 <<< "$rsyncAccPwd"`
+    rsyncSecrets=`cut -d'@' -f1 <<< "$rsyncSecPort"`
+    rsyncPort=`cut -d'@' -f2 <<< "$rsyncSecPort"`
+
+    # Create the account-password secret file for Rsync
+    echo "$rsyncAccPwd" > $rsyncSecrets
+
+    cat > /etc/rsyncd.conf <<EOF
+uid = root
+gid = root
+port = ${rsyncPort}
+
+[Mirroring]
+comment = Disaster Recovery of My Cloud
+auth users = ${rsyncAcc}
+secrets file = ${rsyncSecrets}
+use chroot = true
+path = /home/ncD
+read only = true
+list = false
+log file = /var/log/rsync.log
+
+    EOF
+    systemctl start rsync
+    echo -e "\033[5;41;34m！开箱即用的rsync daemon已部署完成！\033[0m"
+
 fi
