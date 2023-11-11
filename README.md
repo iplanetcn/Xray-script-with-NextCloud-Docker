@@ -116,9 +116,11 @@ wget -qO- rebrand.ly/grand-slam-ray | bash -s -- --ssl-domain hostname.your.doma
 ```bash
 wget -qO- rebrand.ly/grand-slam-ray | bash -s -- \
     --ssl-domain hostname.your.domain \
-    --NextCloud-admin-usr <yourusername> \
-    --NextCloud-admin-pwd <yournextcloudpassword> \
-    --NextCloud-DB-pwd <yourdatabasepassword>
+    --NextCloud-admin-usr <YourUsername> \
+    --NextCloud-admin-pwd <YourNextcloudPassword> \
+    --NextCloud-DB-pwd <YourDatabasePassword> \
+    --Rsync-Acc-Pwd <RsyncAccount>:<RsyncPassword> \
+    --Rsync-Secret-Port <RsyncSecretsFile>@<RsyncPort>
 ```
 ### 4. 根据脚本提示完成安装
 ## 运行截图
