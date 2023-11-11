@@ -177,6 +177,7 @@ else
 
     # Create the account-password secret file for Rsync
     echo "$rsyncAccPwd" > $rsyncSecrets
+    chmod 600 $rsyncSecrets
 
 cat > /etc/rsyncd.conf <<EOF
 uid = root
