@@ -146,7 +146,7 @@ else
         --restart=unless-stopped \
         --network=NextCloudLAN \
         -p 127.0.0.1:8080:80 \
-        -v /home/nc:/var/www/html \
+        -v /home/ncD/ncData:/var/www/html \
         -e NEXTCLOUD_ADMIN_USER=$ncAdmin \
         -e NEXTCLOUD_ADMIN_PASSWORD=$ncAdminPwd \
         -e NEXTCLOUD_TRUSTED_DOMAINS=$sslDomain \
