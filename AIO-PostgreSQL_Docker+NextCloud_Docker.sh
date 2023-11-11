@@ -8,7 +8,7 @@ fi
 
 while [[ $# -ge 2 ]]; do
     case $1 in
-        '--ssl-domain')
+        '--ssl-domain')  # Since Rsync cannot work properly under some CDNs, so this is merely the mutual domain of Xray & Nextcloud (NOT the Rsync).
             shift
             if [[ -z $1 ]] || [[ $1 == -* ]]; then
                 echo -e "\033[5;41;34m此脚本至少需要一个解析到本服务器的域名\n请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
@@ -111,7 +111,7 @@ fi
 
 
 # start of the script
-rm -rf /home/nc
+rm -rf /home/ncD
 apt update && apt --no-install-recommends -y install wget curl ca-certificates rsync
 
 if [[ -v fakeUrl ]]; then
@@ -178,7 +178,7 @@ else
     # Create the account-password secret file for Rsync
     echo "$rsyncAccPwd" > $rsyncSecrets
 
-    cat > /etc/rsyncd.conf <<EOF
+cat > /etc/rsyncd.conf <<EOF
 uid = root
 gid = root
 port = ${rsyncPort}
@@ -193,7 +193,7 @@ read only = true
 list = false
 log file = /var/log/rsync.log
 
-    EOF
+EOF
     systemctl start rsync
     echo -e "\033[5;41;34m！开箱即用的rsync daemon已部署完成！\033[0m"
 
