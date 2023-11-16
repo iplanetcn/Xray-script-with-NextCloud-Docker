@@ -8,7 +8,7 @@ fi
 
 while [[ $# -ge 2 ]]; do
     case $1 in
-        '--ssl-domain')  # Since Rsync cannot work properly under some CDNs, so this is merely the mutual domain of Xray & Nextcloud (NOT the Rsync).
+        '--ssl-domain')  # Since SSH cannot be forwarded on default port under some CDNs, so this is merely the mutual domain of Xray & Nextcloud (NOT for the Rsync over SSH).
             shift
             if [[ -z $1 ]] || [[ $1 == -* ]]; then
                 echo -e "\033[5;41;34m此脚本至少需要一个解析到本服务器的域名\n请补充域名后重新运行脚本！形如hostname.your.domain\033[0m"
@@ -72,26 +72,14 @@ while [[ $# -ge 2 ]]; do
             shift
         ;;
         
-        '--Rsync-Acc-Pwd')  # separated by the colon symbol
+        '--RsyncSSH-Usr-Pwd')  # separated by the colon symbol
             shift
             if [[ -z $1 ]] || [[ $1 == -* ]]; then
-                echo -e "\033[5;41;34m需要正确配置Rsync的同步账号:密码！\033[0m"
+                echo -e "\033[5;41;34m需要正确配置用于Rsync over SSH的系统`账号:密码`！\033[0m"
                 exit 1
             else
-                rsyncAccPwd="$1"
-                echo -e "\033[5;41;34m您输入的Rsync同步账号密码是：${rsyncAccPwd}\033[0m"
-            fi
-            shift
-        ;;
-
-        '--Rsync-Secret-Port')  # separated by the @ symbol
-            shift
-            if [[ -z $1 ]] || [[ $1 == -* ]]; then
-                echo -e "\033[5;41;34m需要正确配置Rsync的服务端账密储存文件、端口！\033[0m"
-                exit 1
-            else
-                rsyncSecPort="$1"
-                echo -e "\033[5;41;34m您输入的Rsync服务端账密储存文件、端口是：${rsyncSecPort}\033[0m"
+                rsyncSshUsrPwd="$1"
+                echo -e "\033[5;41;34m您输入的用于Rsync over SSH的系统账号密码是：${rsyncSshUsrPwd}\033[0m"
             fi
             shift
         ;;
@@ -101,10 +89,10 @@ done
 if ! [[ -v sslDomain ]]; then
     echo -e "\033[5;41;34m指向域名是必需的！\033[0m"
     exit 1
-elif [[ ! (-v ncAdmin && -v ncAdminPwd && -v ncDatabasePwd && -v rsyncAccPwd && -v rsyncSecPort) && -z $fakeUrl ]]; then
+elif [[ ! (-v ncAdmin && -v ncAdminPwd && -v ncDatabasePwd && -v rsyncSshUsrPwd) && -z $fakeUrl ]]; then
     echo -e "\033[5;41;34m要么装网盘要么正常简单用，也不能缺选项\033[0m"
     exit 1
-elif [[ (-v ncAdmin || -v ncAdminPwd || -v ncDatabasePwd || -v rsyncAccPwd || -v rsyncSecPort) && -v fakeUrl ]]; then
+elif [[ (-v ncAdmin || -v ncAdminPwd || -v ncDatabasePwd || -v rsyncSshUsrPwd) && -v fakeUrl ]]; then
     echo -e "\033[5;41;34m是二选一啦！不能两个都要！达咩！\033[0m"
     exit 1
 fi
@@ -112,7 +100,7 @@ fi
 
 # start of the script
 rm -rf /home/ncD
-apt update && apt --no-install-recommends -y install wget curl ca-certificates rsync
+apt update && apt --no-install-recommends -y install wget curl ca-certificates acl
 
 if [[ -v fakeUrl ]]; then
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain $fakeUrl
@@ -122,6 +110,7 @@ else
 
     curl -fsSL https://get.docker.com | bash
 
+    ncCpuLimit=`nproc --all | awk '{print $1*0.9}'`
     docker network create NextCloudLAN
 
     docker run -d \
@@ -133,14 +122,14 @@ else
         -e TZ=Asia/Singapore \
         -v /home/ncD/pgData:/var/lib/postgresql/data \
         --name NextCloudDB \
-        postgres:alpine
+        postgres:16.0-alpine3.18
 
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
         -e TZ=Asia/Singapore \
         --name NextCloudCACHE \
-        redis:alpine
+        redis:7.2.3-alpine3.18
 
     docker run -d \
         --restart=unless-stopped \
@@ -159,7 +148,8 @@ else
         -e REDIS_HOST=NextCloudCACHE \
         -e TZ=Asia/Singapore \
         --name NextCloudIns \
-        nextcloud:latest
+        --cpus="$ncCpuLimit" \
+        nextcloud:27.1.3-apache
 
 
     # Thankfully borrowed from https://stackoverflow.com/a/37410430
@@ -169,33 +159,21 @@ else
 
 
 
-    # Create the config file for Rsyncd
-    # Separate the sub-variables accordingly
-    rsyncAcc=`cut -d':' -f1 <<< "$rsyncAccPwd"`
-    rsyncSecrets=`cut -d'@' -f1 <<< "$rsyncSecPort"`
-    rsyncPort=`cut -d'@' -f2 <<< "$rsyncSecPort"`
+    # Enable the specific user account for rsync over SSH
+    rsyncSshUsr=`cut -d: -f1 <<< $rsyncSshUsrPwd`
+    rsyncSshUsrPwd=`cut -d: -f2 <<< $rsyncSshUsrPwd`
 
-    # Create the account-password secret file for Rsync
-    echo "$rsyncAccPwd" > $rsyncSecrets
-    chmod 600 $rsyncSecrets
+    usermod -p `echo $rsyncSshUsrPwd | openssl passwd -1 -stdin` -s /bin/bash $rsyncSshUsr
+    rsyncSshGrp=`getent passwd $rsyncSshUsr | cut -d: -f5`
+    rsyncSshUsrHome=`getent passwd $rsyncSshUsr | cut -d: -f6`
+    chown -hR $rsyncSshUsr:$rsyncSshGrp $rsyncSshUsrHome  # in some circumstances an non-root user doesn't own their homedir which introduces considerable latency on SSH login every time
 
-cat > /etc/rsyncd.conf <<EOF
-uid = root
-gid = root
-port = ${rsyncPort}
+    # Assign proper ACL permissions to the specific user account for the NextCloud deployment directory
+    setfacl -LR -m u:$rsyncSshUsr:rx /home/ncD
+    setfacl -dLR -m u:$rsyncSshUsr:rx /home/ncD
 
-[Mirroring]
-comment = Disaster Recovery of My Cloud
-auth users = ${rsyncAcc}
-secrets file = ${rsyncSecrets}
-use chroot = true
-path = /home/ncD
-read only = true
-list = false
-log file = /var/log/rsync.log
+    # Check periodically for directory permissions recursively to maintain consistency
+    (crontab -l; echo "* 2 * * * setfacl -LR -m u:$rsyncSshUsr:rx /home/ncD") | crontab -
 
-EOF
-    systemctl start rsync
-    echo -e "\033[5;41;34m！开箱即用的rsync daemon已部署完成！\033[0m"
-
+    echo -e "\033[5;41;34m！为rsync over SSH准备的系统用户已启用完成！\033[0m"
 fi
