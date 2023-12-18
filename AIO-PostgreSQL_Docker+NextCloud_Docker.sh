@@ -100,12 +100,24 @@ fi
 
 # start of the script
 rm -rf /home/ncD
-apt update && apt --no-install-recommends -y install wget curl ca-certificates acl
+apt update && apt --no-install-recommends -y install wget curl ca-certificates openresolv wireguard wireguard-tools vnstat unzip
+
+# You need to modify the /etc/vnstat.conf according to https://doc.ssr.rs/vnstat
+# Then run "systemctl restart vnstat"
+
+mkdir -p /opt/ServerStatus && cd /opt/ServerStatus
+wget -q https://github.com/zdz/Serverstatus-Rust/releases/latest/download/client-x86_64-unknown-linux-musl.zip
+unzip -o client-x86_64-unknown-linux-musl.zip 'stat_client' && rm client-x86_64-unknown-linux-musl.zip
+# Upload your PROPER stat_client systemd file to /etc/systemd/system/stat_client.service
+# 
+# Execute "systemctl daemon-reload && systemctl restart stat_client" afterwards
+cd -
 
 if [[ -v fakeUrl ]]; then
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain $fakeUrl
     echo -e "\033[5;41;34m带有外部反向代理伪装网址的纯Xray服务端已部署完成！\033[0m"
 else
+    apt install -y acl rsync
     curl -fsL rebrand.ly/CamouSneak | bash -s -- $sslDomain
 
     curl -fsSL https://get.docker.com | bash
@@ -113,6 +125,7 @@ else
     ncCpuLimit=`nproc --all | awk '{print $1*0.9}'`
     docker network create NextCloudLAN
 
+    # https://hub.docker.com/_/postgres/tags
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
@@ -122,15 +135,17 @@ else
         -e TZ=Asia/Singapore \
         -v /home/ncD/pgData:/var/lib/postgresql/data \
         --name NextCloudDB \
-        postgres:16.0-alpine3.18
+        postgres:15.5-alpine3.19
 
+    # https://hub.docker.com/_/redis/tags
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
         -e TZ=Asia/Singapore \
         --name NextCloudCACHE \
-        redis:7.2.3-alpine3.18
+        redis:7.2.3-alpine3.19
 
+    # https://hub.docker.com/_/nextcloud/tags
     docker run -d \
         --restart=unless-stopped \
         --network=NextCloudLAN \
@@ -149,7 +164,7 @@ else
         -e TZ=Asia/Singapore \
         --name NextCloudIns \
         --cpus="$ncCpuLimit" \
-        nextcloud:27.1.3-apache
+        nextcloud:28.0.0-apache
 
 
     # Thankfully borrowed from https://stackoverflow.com/a/37410430
