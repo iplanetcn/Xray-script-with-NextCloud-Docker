@@ -107,20 +107,17 @@ dnf -y install wget ca-certificates || yum -y install wget ca-certificates
 ```
 ### 2. 执行小脚本只安装Xray服务端
 ```bash
-curl -fsL rebrand.ly/CamouSneak | bash -s -- hostname.your.domain fake.rev.url
-```
-```bash
-wget -qO- rebrand.ly/grand-slam-ray | bash -s -- --ssl-domain hostname.your.domain --fake-domain http://demo.cloudreve.org
+wget -qO- rebrand.ly/GammaRay | bash -s -- --ssl-domain hostname.your.domain --fake-domain https://demo.cloudreve.org
 ```
 ### 3. 执行大脚本Xray、NextCloud傻瓜式一把梭
+> Borrowed from [How to Execute multiple command using nohup](https://unix.stackexchange.com/q/47230) and [Does nohup work across a pipe?](https://stackoverflow.com/q/26912092)
 ```bash
-wget -qO- rebrand.ly/grand-slam-ray | bash -s -- \
-    --ssl-domain hostname.your.domain \
-    --NextCloud-admin-usr <YourUsername> \
-    --NextCloud-admin-pwd <YourNextcloudPassword> \
-    --NextCloud-DB-pwd <YourDatabasePassword> \
-    --Rsync-Acc-Pwd <RsyncAccount>:<RsyncPassword> \
-    --Rsync-Secret-Port <RsyncSecretsFile>@<RsyncPort>
+nohup bash -c "wget -qO- rebrand.ly/GammaRay | bash -s -- \
+--ssl-domain hostname.your.domain \
+--NextCloud-admin-usr <YourUsername> \
+--NextCloud-admin-pwd <YourNextcloudPassword> \
+--NextCloud-DB-pwd <YourDatabasePassword> \
+--RsyncSSH-Usr-Pwd <RsyncAccount>:<RsyncPassword>" &
 ```
 ### 4. 根据脚本提示完成安装
 ## 运行截图
