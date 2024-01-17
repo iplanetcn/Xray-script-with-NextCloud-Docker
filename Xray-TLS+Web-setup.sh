@@ -3241,6 +3241,7 @@ print_config_info()
     echo
     yellow "注：部分选项可能分享链接无法涉及，如果不怕麻烦，建议手动填写"
     # ask_if "是否生成分享链接？(y/n)" && print_share_link
+        print_share_link
     echo
     yellow " 关于fingerprint与alpn，详见：https://github.com/kirin10000/Xray-script#关于tls握手tls指纹和alpn"
     echo
